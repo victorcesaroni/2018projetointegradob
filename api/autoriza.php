@@ -8,6 +8,22 @@ if (isset($_GET['usuario'])) {
     $name = $_GET['name'];
     $password = $_GET['password'];
     $porta = $_GET['porta'];
+    $porta_id = -1;
+
+    {
+        $sql = "SELECT id, name FROM doors WHERE name='$porta'";
+        $result = $conn->query($sql);
+       
+        if (!$result) {
+            echo "PORTA NAO EXISTE<br>";
+        } else { 
+            if ($result->num_rows > 0) {
+                if ($row = $result->fetch_assoc()) {    
+                    $porta_id = $row['id'];       
+                }
+            }
+        }       
+    }
 
     $sql = "SELECT id, name, password FROM users WHERE name='$name' AND password='$password'";
     $result = $conn->query($sql);
@@ -21,7 +37,7 @@ if (isset($_GET['usuario'])) {
                 echo "ERRO INTERNO<br>";
             } else { 
                 $token = md5(rand());
-                $sql = "INSERT INTO tokens (id, user_id, door_id, token, creation_date, valid) VALUES (NULL, $row[id], $porta, '$token', NOW(), 1)";
+                $sql = "INSERT INTO tokens (id, user_id, door_id, token, creation_date, valid) VALUES (NULL, $row[id], $porta_id, '$token', NOW(), 1)";
                 $result = $conn->query($sql);
                 if (!$result) {
                     echo "ERRO INTERNO<br>";
@@ -34,15 +50,15 @@ if (isset($_GET['usuario'])) {
         echo "ACESSO NEGADO<br>";
     }
 } else if (isset($_GET['porta'])) {
-    $username = $_GET['username'];
+    $name = $_GET['name'];
     $token = $_GET['token'];
     $porta = $_GET['porta'];
 
-    $sql = "SELECT users.id, users.name, tokens.id AS _token_id, tokens.token AS _token FROM users,tokens 
-        WHERE users.id = tokens.user_id 
-        AND users.name='$username' 
+    $sql = "SELECT users.id, users.name, tokens.id AS _token_id, tokens.token AS _token FROM users,tokens,doors 
+        WHERE users.id = tokens.user_id  AND tokens.door_id = doors.id
+        AND users.name='$name' 
         AND tokens.valid=1 
-        AND tokens.door_id=$porta
+        AND doors.name='$porta'
         AND tokens.token='$token'";
     $result = $conn->query($sql);
     
