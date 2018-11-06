@@ -80,6 +80,10 @@ void sendHttpRequest(std::string info) {
     if (httpCode == HTTP_CODE_OK) {
       String payload = http.getString();
       Serial.println(payload);
+
+      if(payload.indexOf("OK") > 0) {
+        digitalWrite(2, HIGH);
+      }
     }
   } else {
     Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -106,6 +110,8 @@ void bleSetup() {
 
 void setup() {
   Serial.begin(9600);
+  pinMode(2, OUTPUT);
+  digitalWrite(2, LOW);
   bleSetup();
 }
 
